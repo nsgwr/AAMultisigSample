@@ -18,6 +18,8 @@ import "./SenderCreator.sol";
 import "./Helpers.sol";
 import "./NonceManager.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
+import "hardhat/console.sol";
 
 contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuard {
 
@@ -71,6 +73,7 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuard 
             }
             // handleOps was called with gas limit too low. abort entire bundle.
             if (innerRevertCode == INNER_OUT_OF_GAS) {
+                console.log("===failed tx= %d",Strings.toHexString(uint256(innerRevertCode)));
                 //report paymaster, since if it is not deliberately caused by the bundler,
                 // it must be a revert caused by paymaster.
                 revert FailedOp(opIndex, "AA95 out of gas");
@@ -234,6 +237,7 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuard 
     unchecked {
         // handleOps was called with gas limit too low. abort entire bundle.
         if (gasleft() < callGasLimit + mUserOp.verificationGasLimit + 5000) {
+            console.log("gasleft() < callGasLimit + mUserOp.verificationGasLimit + 5000, %s,%s,%s",gasleft() , callGasLimit , mUserOp.verificationGasLimit);
             assembly {
                 mstore(0, INNER_OUT_OF_GAS)
                 revert(0, 32)
@@ -244,9 +248,11 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuard 
         IPaymaster.PostOpMode mode = IPaymaster.PostOpMode.opSucceeded;
         if (callData.length > 0) {
             bool success = Exec.call(mUserOp.sender, 0, callData, callGasLimit);
+            console.log("success ",success);  
             if (!success) {
                 bytes memory result = Exec.getReturnData(REVERT_REASON_MAX_LEN);
                 if (result.length > 0) {
+                    console.log("UserOperationRevertReason ");  
                     emit UserOperationRevertReason(opInfo.userOpHash, mUserOp.sender, mUserOp.nonce, result);
                 }
                 mode = IPaymaster.PostOpMode.opReverted;
@@ -265,6 +271,7 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuard 
      * the request ID is a hash over the content of the userOp (except the signature), the entrypoint and the chainid.
      */
     function getUserOpHash(UserOperation calldata userOp) public view returns (bytes32) {
+        console.log("==signRawMassage Solidity= %s, %s, %s", Strings.toHexString(uint256(userOp.hash())), address(this), block.chainid);
         return keccak256(abi.encode(userOp.hash(), address(this), block.chainid));
     }
 
@@ -407,6 +414,8 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuard 
             uint256 bal = balanceOf(sender);
             missingAccountFunds = bal > requiredPrefund ? 0 : requiredPrefund - bal;
         }
+        console.log("_validateAccountPrepayment %s",mUserOp.verificationGasLimit);
+
         try IAccount(sender).validateUserOp{gas : mUserOp.verificationGasLimit}(op, opInfo.userOpHash, missingAccountFunds)
         returns (uint256 _validationData) {
             validationData = _validationData;
@@ -466,6 +475,7 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuard 
     function _validateAccountAndPaymasterValidationData(uint256 opIndex, uint256 validationData, uint256 paymasterValidationData, address expectedAggregator) internal view {
         (address aggregator, bool outOfTimeRange) = _getValidationData(validationData);
         if (expectedAggregator != aggregator) {
+            console.log("expectedAggregator != aggregator. %s != %s",expectedAggregator,aggregator);
             revert FailedOp(opIndex, "AA24 signature error");
         }
         if (outOfTimeRange) {
@@ -500,7 +510,8 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuard 
      * @param opIndex the index of this userOp into the "opInfos" array
      * @param userOp the userOp to validate
      */
-    function _validatePrepayment(uint256 opIndex, UserOperation calldata userOp, UserOpInfo memory outOpInfo)
+    function 
+    _validatePrepayment(uint256 opIndex, UserOperation calldata userOp, UserOpInfo memory outOpInfo)
     private returns (uint256 validationData, uint256 paymasterValidationData) {
 
         uint256 preGas = gasleft();
@@ -581,6 +592,7 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuard 
                 }
             }
         }
+        console.log("refundAddress: %s", refundAddress);
         actualGas += preGas - gasleft();
         actualGasCost = actualGas * gasPrice;
         if (opInfo.prefund < actualGasCost) {

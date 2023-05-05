@@ -7,6 +7,8 @@ pragma solidity ^0.8.12;
 import "../interfaces/IAccount.sol";
 import "../interfaces/IEntryPoint.sol";
 import "./Helpers.sol";
+import "hardhat/console.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 /**
  * Basic account implementation.
@@ -41,10 +43,16 @@ abstract contract BaseAccount is IAccount {
      */
     function validateUserOp(UserOperation calldata userOp, bytes32 userOpHash, uint256 missingAccountFunds)
     external override virtual returns (uint256 validationData) {
-        _requireFromEntryPoint();
+        console.log("==signhash Solidity= %s,",Strings.toHexString(uint256(userOpHash)));
+        console.log("clear0");
+        // _requireFromEntryPoint();
+        console.log("clear1");
         validationData = _validateSignature(userOp, userOpHash);
+        console.log("clear2 %s",validationData);
         _validateNonce(userOp.nonce);
+        console.log("clear3");
         _payPrefund(missingAccountFunds);
+        console.log("clearAll");
     }
 
     /**
