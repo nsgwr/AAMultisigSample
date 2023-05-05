@@ -236,6 +236,7 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuard 
         uint callGasLimit = mUserOp.callGasLimit;
     unchecked {
         // handleOps was called with gas limit too low. abort entire bundle.
+        console.log("gasleft() < callGasLimit + mUserOp.verificationGasLimit + 5000, %s,%s,%s",gasleft() , callGasLimit , mUserOp.verificationGasLimit);
         if (gasleft() < callGasLimit + mUserOp.verificationGasLimit + 5000) {
             console.log("gasleft() < callGasLimit + mUserOp.verificationGasLimit + 5000, %s,%s,%s",gasleft() , callGasLimit , mUserOp.verificationGasLimit);
             assembly {

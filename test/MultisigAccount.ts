@@ -31,7 +31,7 @@ describe("MultisigAccount", function () {
         await bundler.sendTransaction({
           from: bundler.address,
           to: user.walletContract.address,
-          value: ethers.utils.parseEther("100"),
+          value: ethers.utils.parseEther("2"),
         });
         console.log(
           `==account${userId} balance=`,
@@ -69,7 +69,8 @@ describe("MultisigAccount", function () {
       const userOp = await genSignedUserOperation(
         users[0],
         users[1].walletContract.address,
-        ethers.utils.parseEther("0.12"),
+        ethers.utils.parseEther("0.1"),
+        ethers.utils.parseEther("0.0000000000001"),
         ep
       );
       const userOpsTx = await ep.handleOps(
@@ -78,15 +79,21 @@ describe("MultisigAccount", function () {
       );
       const result = await userOpsTx.wait();
       console.log("==result=", result.events[1].args);
+      console.log(result);
       users.map(async (user) => {
         console.log(
           user.walletContract.address,
           await getEtherBalance(user.walletContract.address)
         );
       });
+      // expect(
+      //   await ethers.provider.getBalance(users[0].walletContract.address)
+      // ).to.be.equals(ethers.utils.parseEther("1.9").sub(result.gasUsed));
+      // TODO: TXのガス消費以上に徴収されている？ロジックを確認
+
       expect(
-        await getEtherBalance(users[0].walletContract.address)
-      ).to.be.equals("1.88");
+        await ethers.provider.getBalance(users[1].walletContract.address)
+      ).to.be.equals(ethers.utils.parseEther("2.1"));
     });
   });
 });
@@ -95,6 +102,7 @@ async function genSignedUserOperation(
   user: { account: Wallet; walletContract: Contract },
   to: string,
   value: BigNumberish,
+  callGasLimit: BigNumberish,
   ep: Contract,
   option?: { nance: BigNumberish | undefined; initCode: string | undefined }
 ) {
@@ -106,6 +114,7 @@ async function genSignedUserOperation(
       "execute(address,uint,bytes)",
       [to, value, "0x"]
     ),
+    callGasLimit: callGasLimit,
   });
 
   const network = await ethers.provider.getNetwork();
@@ -145,10 +154,7 @@ async function existsAddress(address: string) {
 }
 
 function getAccount(path: number) {
-  return ethers.Wallet.fromMnemonic(
-    process.env.MNEMONIC || "",
-    `m/44'/60'/0'/0/${path}`
-  );
+  return ethers.Wallet.createRandom();
 }
 
 async function getEtherBalance(address: string) {

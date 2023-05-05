@@ -7,18 +7,11 @@ import { HardhatUserConfig } from "hardhat/config";
 import "solidity-coverage";
 
 import dotenv from "dotenv";
-import * as fs from "fs";
 dotenv.config();
 
-const mnemonicFileName =
-  process.env.MNEMONIC_FILE ??
-  `${process.env.HOME}/.secret/testnet-mnemonic.txt`;
-let mnemonic =
+const mnemonic =
   process.env.MNEMONIC ||
   "hoge hoge hoge hoge hoge hoge hoge hoge hoge hoge hoge hoge";
-if (fs.existsSync(mnemonicFileName)) {
-  mnemonic = fs.readFileSync(mnemonicFileName, "ascii");
-}
 
 function getNetwork1(url: string): {
   url: string;
