@@ -14,6 +14,6 @@
     "./deploy",
     "./test",
     "typechain/**/*",
-    "src/builder/MultisigAccountBuilder.ts"
+    "./src"
   ]
 }

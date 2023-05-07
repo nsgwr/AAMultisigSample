@@ -2,7 +2,6 @@ import { Contract, Signer } from "ethers";
 import { ethers } from "hardhat";
 import { ABI, DeployFunction } from "hardhat-deploy/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { IUserOperation } from "userop";
 
 const deployMultisigAccountFactory: DeployFunction = async function (
   hre: HardhatRuntimeEnvironment
@@ -53,7 +52,7 @@ const deployMultisigAccountFactory: DeployFunction = async function (
   // const executeTx = await walletContract.execute(signerAddress, 10000, "0x");
   // console.log("==executeTx=", executeTx.hash);
 
-  const userOp: IUserOperation[] = [
+  const userOp = [
     {
       sender: user.address,
       nonce: 1,
@@ -69,18 +68,6 @@ const deployMultisigAccountFactory: DeployFunction = async function (
       maxPriorityFeePerGas: 100,
       paymasterAndData: "0x",
       signature: "0x",
-
-      // address sender;
-      // uint256 nonce;
-      // bytes initCode;
-      // bytes callData;
-      // uint256 callGasLimit;
-      // uint256 verificationGasLimit;
-      // uint256 preVerificationGas;
-      // uint256 maxFeePerGas;
-      // uint256 maxPriorityFeePerGas;
-      // bytes paymasterAndData;
-      // bytes signature;
     },
   ];
   const ep = new ethers.Contract(entrypoint.address, entrypoint.abi, signer);
