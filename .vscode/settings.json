@@ -4,7 +4,9 @@
   "editor.codeActionsOnSave": {
     "source.organizeImports": true
   },
+  "solidity.formatter": "prettier",
   "[solidity]": {
-    "editor.defaultFormatter": "SimonSiefke.prettier-vscode"
-  }
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "prettier.documentSelectors": ["**/*.sol"]
 }

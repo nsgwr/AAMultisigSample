@@ -27,30 +27,50 @@ contract MultisigAccountFactory {
      * Note that during UserOperation execution, this method is called only if the account is not deployed.
      * This method returns an existing account address so that entryPoint.getSenderAddress() would work even after account creation
      */
-    function createAccount(address owner,uint256 salt) public returns (MultisigAccount ret) {
-        address addr = getAddress(owner, salt);
+    function createAccount(
+        address owner1,
+        address owner2,
+        uint256 salt
+    ) public returns (MultisigAccount ret) {
+        address addr = getAddress(owner1, owner2, salt);
         uint codeSize = addr.code.length;
         if (codeSize > 0) {
             return MultisigAccount(payable(addr));
         }
-        ret = MultisigAccount(payable(new ERC1967Proxy{salt : bytes32(salt)}(
-                address(accountImplementation),
-                abi.encodeCall(MultisigAccount.initialize, (owner))
-            )));
+        ret = MultisigAccount(
+            payable(
+                new ERC1967Proxy{salt: bytes32(salt)}(
+                    address(accountImplementation),
+                    abi.encodeCall(MultisigAccount.initialize, (owner1, owner2))
+                )
+            )
+        );
         emit MultisigAccountCreated(addr);
     }
 
     /**
      * calculate the counterfactual address of this account as it would be returned by createAccount()
      */
-    function getAddress(address owner,uint256 salt) public view returns (address) {
-        return Create2.computeAddress(bytes32(salt), keccak256(abi.encodePacked(
-                type(ERC1967Proxy).creationCode,
-                abi.encode(
-                    address(accountImplementation),
-                    abi.encodeCall(MultisigAccount.initialize, (owner))
+    function getAddress(
+        address owner1,
+        address owner2,
+        uint256 salt
+    ) public view returns (address) {
+        return
+            Create2.computeAddress(
+                bytes32(salt),
+                keccak256(
+                    abi.encodePacked(
+                        type(ERC1967Proxy).creationCode,
+                        abi.encode(
+                            address(accountImplementation),
+                            abi.encodeCall(
+                                MultisigAccount.initialize,
+                                (owner1, owner2)
+                            )
+                        )
+                    )
                 )
-            )));
+            );
     }
-
 }

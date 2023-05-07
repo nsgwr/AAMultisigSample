@@ -8,8 +8,10 @@
         "useTabs": false,
         "singleQuote": false,
         "bracketSpacing": false,
-        "explicitTypes": "preserve"
+        "explicitTypes": "preserve",
+        "parser": "solidity-parse"
       }
     }
-  ]
+  ],
+  "plugins": ["prettier-plugin-solidity"]
 }
