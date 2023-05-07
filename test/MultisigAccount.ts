@@ -1,8 +1,9 @@
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
-import { BigNumberish, Contract, Signer, Wallet } from "ethers";
-import hre, { ethers } from "hardhat";
+import { BigNumberish, Contract, Wallet } from "ethers";
+import { ethers } from "hardhat";
 import { fillUserOpDefaults, getUserOpHash } from "../src/UserOperation";
+import { createUser, getEtherBalance } from "../src/Util";
 
 describe("MultisigAccount", function () {
   // We define a fixture to reuse the same setup in every test.
@@ -50,18 +51,6 @@ describe("MultisigAccount", function () {
     };
   }
 
-  // describe("Wallet Test", function () {
-  //   it("owner", async function () {
-  //     const { ep, factory, users, bundler } = await loadFixture(deploy);
-  //     users.forEach(async (user) => {
-  //       expect(user.account1.address).to.be.equals(
-  //         await user.walletContract.owner()
-  //       );
-  //       expect(ep.address).to.be.equals(await user.walletContract.entryPoint());
-  //     });
-  //   });
-  // });
-
   describe("Ether Transfer", function () {
     it("user1 -> user2", async function () {
       const { ep, factory, users, bundler } = await loadFixture(deploy);
@@ -78,10 +67,9 @@ describe("MultisigAccount", function () {
         await bundler.getAddress()
       );
       const result = await userOpsTx.wait();
-      console.log("==result=", result.events[1].args);
-      console.log(result);
-      users.map(async (user) => {
+      users.forEach(async (user, index) => {
         console.log(
+          `==account${index + 1} balance=`,
           user.walletContract.address,
           await getEtherBalance(user.walletContract.address)
         );
@@ -129,57 +117,10 @@ async function genSignedUserOperation(
   const signature2 = await user.signer2.signMessage(
     ethers.utils.arrayify(opHash)
   );
-  console.log("==signature1,signature2=", signature1, signature2);
   const mergedSig = Buffer.concat([
     Buffer.from(signature1.substring(2), "hex"),
     Buffer.from(signature2.substring(2), "hex"),
   ]);
   userOp.signature = "0x" + mergedSig.toString("hex");
-  console.log("==userOp.signature=", userOp.signature);
   return userOp;
-}
-
-async function createUser(
-  factory: Contract,
-  salt: number,
-  bundlerSigner: Signer
-) {
-  const signer1 = getAccount();
-  const signer2 = getAccount();
-  const walletAddress = await factory.getAddress(
-    signer1.address,
-    signer2.address,
-    salt
-  );
-
-  const artifact = await hre.deployments.getArtifact("MultisigAccount");
-  const walletContract = new ethers.Contract(
-    walletAddress,
-    artifact.abi,
-    bundlerSigner
-  );
-
-  if (!(await existsAddress(walletAddress))) {
-    const res = await factory.createAccount(
-      await signer1.getAddress(),
-      await signer2.getAddress(),
-      salt
-    );
-    console.debug("==account created!! tx=", res.hash);
-  }
-  return { signer1, signer2, walletContract };
-}
-
-async function existsAddress(address: string) {
-  const code = await ethers.provider.getCode(address);
-  return code !== "0x";
-}
-
-function getAccount() {
-  return ethers.Wallet.createRandom();
-}
-
-async function getEtherBalance(address: string) {
-  const balance = await ethers.provider.getBalance(address);
-  return ethers.utils.formatEther(balance);
 }

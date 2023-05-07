@@ -13,14 +13,33 @@ npm install -g pnpm
 
 ## commands
 
-テスト実行
+exec test
 
 ```shell
 pnpm test
 ```
 
-コンパイル
+compile
 
 ```shell
 pnpm compile
+```
+
+deploy(local)
+
+```shell
+pnpm deploy:dev
+```
+
+deploy(munbai)
+
+```shell
+
+echo "# this account should have some matic at munbai
+MNEMONIC=XXXXX
+# APIKEY for munbai
+ALCHEMY_APIKEY=YYYY
+"> .env
+
+pnpm deploy:test
 ```

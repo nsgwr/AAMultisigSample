@@ -66,7 +66,6 @@ contract MultisigAccount is BaseAccount, TokenCallbackHandler, Initializable {
         bytes calldata func
     ) external {
         _requireFromEntryPoint();
-        console.log("==execute=, %s, %s, %s", address(this), dest, value);
         _call(dest, value, func);
     }
 
@@ -91,17 +90,17 @@ contract MultisigAccount is BaseAccount, TokenCallbackHandler, Initializable {
      */
     function initialize(
         address anOwner,
-        address anotherOwner2
+        address anotherOwner
     ) public virtual initializer {
-        _initialize(anOwner, anotherOwner2);
+        _initialize(anOwner, anotherOwner);
     }
 
     function _initialize(
         address anOwner,
-        address anotherOwner2
+        address anotherOwner
     ) internal virtual {
         owner1 = anOwner;
-        owner2 = anotherOwner2;
+        owner2 = anotherOwner;
         emit MultisigAccountInitialized(_entryPoint, owner1, owner2);
     }
 
@@ -135,13 +134,10 @@ contract MultisigAccount is BaseAccount, TokenCallbackHandler, Initializable {
         if (recoveredAddr1 != owner1 || recoveredAddr2 != owner2) {
             return SIG_VALIDATION_FAILED;
         }
-        // console.log("_validateSignature %s",Strings.toHexString(uint256(hash)));
-        // console.log("owner != hash.recover, %s,%s",owner,hash.recover(userOp.signature));
         return 0;
     }
 
     function _call(address target, uint256 value, bytes memory data) internal {
-        console.log("==execute=, %s, %s, %s", address(this), target, value);
         (bool success, bytes memory result) = target.call{value: value}(data);
         if (!success) {
             assembly {

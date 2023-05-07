@@ -1,27 +1,26 @@
 import { ethers } from "hardhat";
 import { DeployFunction } from "hardhat-deploy/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { getEtherBalance } from "../src/Util";
 
 const deployEntryPoint: DeployFunction = async function (
   hre: HardhatRuntimeEnvironment
 ) {
   const provider = ethers.provider;
-  const from = await provider.getSigner().getAddress();
-
-  console.log("==from address=", from);
+  const servicerAddress = await provider.getSigner().getAddress();
   console.log(
-    "==from balance=",
-    ethers.utils.formatEther(await provider.getBalance(from))
+    "==servicerAccount, ETH balance=",
+    servicerAddress,
+    ",",
+    await getEtherBalance(servicerAddress)
   );
-  const ret = await hre.deployments.deploy("EntryPoint", {
-    from,
+
+  await hre.deployments.deploy("EntryPoint", {
+    from: servicerAddress,
     args: [],
     gasLimit: 6e6,
     deterministicDeployment: true,
   });
-  console.log("==entrypoint addr=", ret.address);
-
-  return;
 };
 
 export default deployEntryPoint;

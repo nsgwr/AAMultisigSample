@@ -20,7 +20,7 @@ abstract contract BaseAccount is IAccount {
 
     //return value in case of signature failure, with no time-range.
     // equivalent to _packValidationData(true,0,0);
-    uint256 constant internal SIG_VALIDATION_FAILED = 1;
+    uint256 internal constant SIG_VALIDATION_FAILED = 1;
 
     /**
      * Return the account nonce.
@@ -41,25 +41,25 @@ abstract contract BaseAccount is IAccount {
      * Validate user's signature and nonce.
      * subclass doesn't need to override this method. Instead, it should override the specific internal validation methods.
      */
-    function validateUserOp(UserOperation calldata userOp, bytes32 userOpHash, uint256 missingAccountFunds)
-    external override virtual returns (uint256 validationData) {
-        console.log("==signhash Solidity= %s,",Strings.toHexString(uint256(userOpHash)));
-        console.log("clear0");
-        // _requireFromEntryPoint();
-        console.log("clear1");
+    function validateUserOp(
+        UserOperation calldata userOp,
+        bytes32 userOpHash,
+        uint256 missingAccountFunds
+    ) external virtual override returns (uint256 validationData) {
+        _requireFromEntryPoint();
         validationData = _validateSignature(userOp, userOpHash);
-        console.log("clear2 %s",validationData);
         _validateNonce(userOp.nonce);
-        console.log("clear3");
         _payPrefund(missingAccountFunds);
-        console.log("clearAll");
     }
 
     /**
      * ensure the request comes from the known entrypoint.
      */
-    function _requireFromEntryPoint() internal virtual view {
-        require(msg.sender == address(entryPoint()), "account: not from EntryPoint");
+    function _requireFromEntryPoint() internal view virtual {
+        require(
+            msg.sender == address(entryPoint()),
+            "account: not from EntryPoint"
+        );
     }
 
     /**
@@ -75,8 +75,10 @@ abstract contract BaseAccount is IAccount {
      *      If the account doesn't use time-range, it is enough to return SIG_VALIDATION_FAILED value (1) for signature failure.
      *      Note that the validation code cannot use block.timestamp (or block.number) directly.
      */
-    function _validateSignature(UserOperation calldata userOp, bytes32 userOpHash)
-    internal virtual returns (uint256 validationData);
+    function _validateSignature(
+        UserOperation calldata userOp,
+        bytes32 userOpHash
+    ) internal virtual returns (uint256 validationData);
 
     /**
      * Validate the nonce of the UserOperation.
@@ -94,8 +96,7 @@ abstract contract BaseAccount is IAccount {
      *
      * solhint-disable-next-line no-empty-blocks
      */
-    function _validateNonce(uint256 nonce) internal view virtual {
-    }
+    function _validateNonce(uint256 nonce) internal view virtual {}
 
     /**
      * sends to the entrypoint (msg.sender) the missing funds for this transaction.
@@ -107,7 +108,10 @@ abstract contract BaseAccount is IAccount {
      */
     function _payPrefund(uint256 missingAccountFunds) internal virtual {
         if (missingAccountFunds != 0) {
-            (bool success,) = payable(msg.sender).call{value : missingAccountFunds, gas : type(uint256).max}("");
+            (bool success, ) = payable(msg.sender).call{
+                value: missingAccountFunds,
+                gas: type(uint256).max
+            }("");
             (success);
             //ignore failure (its EntryPoint's job to verify, not account.)
         }
