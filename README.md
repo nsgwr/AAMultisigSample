@@ -41,5 +41,5 @@ MNEMONIC=XXXXX
 ALCHEMY_APIKEY=YYYY
 "> .env
 
-pnpm deploy:test
+pnpm deploy:munbai
 ```
