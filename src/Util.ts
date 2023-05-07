@@ -1,11 +1,17 @@
-import { Contract, Signer } from "ethers";
+import { Contract, Signer, Wallet } from "ethers";
 import hre, { ethers } from "hardhat";
 
-export async function createUser(
+export type MultisigWallet = {
+  signer1: Wallet;
+  signer2: Wallet;
+  walletContract: Contract;
+};
+
+export async function createWallet(
   factory: Contract,
   salt: number,
   bundlerSigner: Signer
-) {
+): Promise<MultisigWallet> {
   const signer1 = getAccount();
   const signer2 = getAccount();
   const walletAddress = await factory.getAddress(
@@ -32,16 +38,16 @@ export async function createUser(
   return { signer1, signer2, walletContract };
 }
 
-export async function existsAddress(address: string) {
+export async function existsAddress(address: string): Promise<boolean> {
   const code = await ethers.provider.getCode(address);
   return code !== "0x";
 }
 
-export function getAccount() {
+export function getAccount(): Wallet {
   return ethers.Wallet.createRandom();
 }
 
-export async function getEtherBalance(address: string) {
+export async function getEtherBalance(address: string): Promise<string> {
   const balance = await ethers.provider.getBalance(address);
   return ethers.utils.formatEther(balance);
 }

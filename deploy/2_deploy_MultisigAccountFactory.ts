@@ -1,7 +1,7 @@
 import { ethers } from "hardhat";
 import { DeployFunction } from "hardhat-deploy/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { createUser } from "../src/Util";
+import { createWallet } from "../src/Util";
 
 const deployMultisigAccountFactory: DeployFunction = async function (
   hre: HardhatRuntimeEnvironment
@@ -21,8 +21,8 @@ const deployMultisigAccountFactory: DeployFunction = async function (
 
   const factory = new ethers.Contract(ret.address, ret.abi, signer);
 
-  const user = await createUser(factory, 1, signer);
-  console.log("==wallet contract=", user.walletContract.address);
+  const wallet = await createWallet(factory, 1, signer);
+  console.log("==wallet contract=", wallet.walletContract.address);
 };
 
 export default deployMultisigAccountFactory;

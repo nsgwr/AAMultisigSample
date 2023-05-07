@@ -1,9 +1,8 @@
+import "@nomicfoundation/hardhat-chai-matchers";
 import "@nomiclabs/hardhat-etherscan";
-import "@nomiclabs/hardhat-waffle";
 import "@typechain/hardhat";
 import "hardhat-deploy";
 import { HardhatUserConfig } from "hardhat/config";
-
 import "solidity-coverage";
 
 import dotenv from "dotenv";
